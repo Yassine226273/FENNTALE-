@@ -3,7 +3,9 @@ const http = require('http');
 const axios = require('axios');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// 1. إنشاء سيرفر وهمي لإبقاء البوت حياً على Render
+// رقم هويتك الذي حصلت عليه لإرسال التنبيهات لك
+const MY_ID = "7013389864";
+
 const server = http.createServer((req, res) => {
     res.writeHead(200);
     res.end("Fenntale Store is Online");
@@ -11,18 +13,24 @@ const server = http.createServer((req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT);
 
-// 2. نظام الإنعاش الذاتي لمنع النوم (Keep-Alive)
 setInterval(() => {
     if (process.env.RENDER_EXTERNAL_HOSTNAME) {
         const url = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}.onrender.com`;
-        axios.get(url)
-            .then(() => console.log("Self-ping successful"))
-            .catch(err => console.error("Ping failed"));
+        axios.get(url).catch(() => {});
     }
-}, 600000); // تنبيه كل 10 دقائق
+}, 600000);
 
-// 3. رسالة الترحيب الإنجليزية
 bot.start((ctx) => {
+    // إرسال تنبيه لك باسم الشخص الذي دخل المتجر الآن
+    const user = ctx.from;
+    const alertMsg = `🔔 **New Visitor!**
+👤 Name: ${user.first_name} ${user.last_name || ''}
+🆔 ID: ${user.id}
+🔗 Username: @${user.username || 'No Username'}`;
+    
+    bot.telegram.sendMessage(MY_ID, alertMsg).catch(() => {});
+
+    // رسالة الترحيب للعميل
     const welcomeMsg = `
 🌟 **Welcome to Fenntale** 🌟
 "Fenntale: Your sanctuary of coffee, melodies, and great reads."
@@ -44,15 +52,13 @@ Explore our collection of digital books designed to inspire your journey.
     });
 });
 
-// 4. إرسال الكتاب المجاني تلقائياً
 bot.action('send_free', (ctx) => {
     ctx.reply('Preparing your free gift... 🎁');
-    ctx.replyWithDocument({ source: 'book1.pdf' }).catch((err) => {
-        ctx.reply('Error: File currently unavailable. Please contact support.');
+    ctx.replyWithDocument({ source: 'book1.pdf' }).catch(() => {
+        ctx.reply('Error: File unavailable. Contact support.');
     });
 });
 
-// 5. عرض بيانات الدفع للكتاب الثاني
 bot.action('buy_premium', (ctx) => {
     const paymentMsg = `
 💳 **Payment Details**
