@@ -3,9 +3,9 @@ const http = require('http');
 const axios = require('axios');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// رقم هويتك الذي حصلت عليه لإرسال التنبيهات لك
 const MY_ID = "7013389864";
 
+// إنشاء سيرفر بسيط لـ Render
 const server = http.createServer((req, res) => {
     res.writeHead(200);
     res.end("Fenntale Store is Online");
@@ -13,6 +13,7 @@ const server = http.createServer((req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT);
 
+// نظام الإيقاظ الذاتي
 setInterval(() => {
     if (process.env.RENDER_EXTERNAL_HOSTNAME) {
         const url = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}.onrender.com`;
@@ -21,24 +22,11 @@ setInterval(() => {
 }, 600000);
 
 bot.start((ctx) => {
-    // إرسال تنبيه لك باسم الشخص الذي دخل المتجر الآن
     const user = ctx.from;
-    const alertMsg = `🔔 **New Visitor!**
-👤 Name: ${user.first_name} ${user.last_name || ''}
-🆔 ID: ${user.id}
-🔗 Username: @${user.username || 'No Username'}`;
-    
+    const alertMsg = `🔔 **New Visitor!**\n👤 Name: ${user.first_name}\n🆔 ID: ${user.id}\n🔗 @${user.username || 'None'}`;
     bot.telegram.sendMessage(MY_ID, alertMsg).catch(() => {});
 
-    // رسالة الترحيب للعميل
-    const welcomeMsg = `
-🌟 **Welcome to Fenntale** 🌟
-"Fenntale: Your sanctuary of coffee, melodies, and great reads."
-
-Explore our collection of digital books designed to inspire your journey.
-
-👇 **Please choose an option:**
-    `;
+    const welcomeMsg = `🌟 **Welcome to Fenntale** 🌟\n"Your sanctuary of coffee, melodies, and great reads."\n\n👇 **Choose an option:**`;
 
     ctx.reply(welcomeMsg, {
         parse_mode: 'Markdown',
@@ -50,28 +38,34 @@ Explore our collection of digital books designed to inspire your journey.
             ]
         }
     });
+
+    // --- نظام المتابعة الآلي (كل ساعة رسالة) ---
+
+    // رسالة بعد ساعة واحدة (3600000 ميلي ثانية)
+    setTimeout(() => {
+        ctx.reply("☕️ **How is the reading going?**\nEvery great story deserves a perfect atmosphere. Have you prepared your coffee yet?").catch(() => {});
+    }, 3600000);
+
+    // رسالة بعد ساعتين
+    setTimeout(() => {
+        ctx.reply("🔍 **Did you know?**\nThe mystery deepens in **Book Two**. A secret is hidden in the first chapter that changes everything... Check it out now!").catch(() => {});
+    }, 7200000);
+
+    // رسالة بعد ثلاث ساعات
+    setTimeout(() => {
+        ctx.reply("🎁 **Special Offer!**\nGet the Premium Edition now and receive a personalized digital bookmark with your name. Contact @Mohamedlebah for details.").catch(() => {});
+    }, 10800000);
 });
 
 bot.action('send_free', (ctx) => {
     ctx.reply('Preparing your free gift... 🎁');
     ctx.replyWithDocument({ source: 'book1.pdf' }).catch(() => {
-        ctx.reply('Error: File unavailable. Contact support.');
+        ctx.reply('Error: File unavailable. Contact @Mohamedlebah.');
     });
 });
 
 bot.action('buy_premium', (ctx) => {
-    const paymentMsg = `
-💳 **Payment Details**
-
-To purchase your copy of the **Premium Edition (Book Two)**, please transfer **$12.79** to:
-
-🏦 **Grey Account (IBAN):**
-\`GB64CLJU04130741739018\`
-
-⚠️ **Important:**
-After payment, please send a **screenshot** of the receipt to @Mohamedlebah.
-Your book will be sent to you personally once the payment is verified.
-    `;
+    const paymentMsg = `💳 **Payment Details**\n\nTo purchase **Book Two**, transfer **$12.79** to:\n\n🏦 **Grey (IBAN):**\n\`GB64CLJU04130741739018\`\n\n⚠️ Send screenshot to @Mohamedlebah.`;
     ctx.reply(paymentMsg, { parse_mode: 'Markdown' });
 });
 
