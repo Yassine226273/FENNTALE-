@@ -2,38 +2,27 @@ const { Telegraf } = require('telegraf');
 const http = require('http');
 const axios = require('axios');
 
-// تأكد أن الكلمة الأولى هي const وليست Const (حساسة لحالة الأحرف)
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const MY_ID = "7013389864";
 
-// 1. تحسين السيرفر ليرد على Cron-job بشكل أسرع
+// 1. نظام الحماية من النوم
 const server = http.createServer((req, res) => {
     res.writeHead(200);
-    res.end("Fenntale Status: Active and Online");
-    console.log("Ping received: Keeping the bot awake!"); // ستظهر في الـ Logs لتتأكد
+    res.end("Fenntale Engine: Online");
 });
-
 const PORT = process.env.PORT || 3000;
 server.listen(PORT);
 
-// 2. نظام الإيقاظ الذاتي (المحسن)
 setInterval(() => {
-    // نستخدم الرابط المباشر الخاص بك لضمان الدقة
-    const appUrl = `https://fenntal.onrender.com`; // استبدل 'fenntal' باسم مشروعك الحقيقي على Render إذا كان مختلفاً
-    axios.get(appUrl)
-        .then(() => console.log("Self-ping successful"))
-        .catch((err) => console.log("Self-ping failed, but server is still up"));
-}, 180000); // كل 3 دقائق بدلاً من 10 لضمان عدم النوم
+    const url = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}.onrender.com`;
+    axios.get(url).catch(() => {});
+}, 120000); 
 
 bot.start((ctx) => {
     const user = ctx.from;
-    const alertMsg = `🔔 **New Visitor!**\n👤 Name: ${user.first_name}\n🆔 ID: ${user.id}\n🔗 @${user.username || 'None'}`;
-    
-    bot.telegram.sendMessage(MY_ID, alertMsg).catch(() => {});
+    bot.telegram.sendMessage(MY_ID, `🔔 New Visitor: ${user.first_name}`).catch(() => {});
 
-    const welcomeMsg = `🌟 **Welcome to Fenntale** 🌟\n"Your sanctuary of coffee, melodies, and great reads."\n\n👇 **Choose an option:**`;
-
-    ctx.reply(welcomeMsg, {
+    ctx.reply(`🌟 **Welcome to Fenntale** 🌟\n\n👇 **Please choose an option:**`, {
         parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [
@@ -42,29 +31,60 @@ bot.start((ctx) => {
                 [{ text: "📞 Contact Support", url: "https://t.me/Mohamedlebah" }]
             ]
         }
-    }).catch(e => console.log(e));
+    });
 
-    // نظام المتابعة (تم تحسينه ليعمل بشكل مستقل)
-    setupFollowUp(ctx);
+    // --- نظام التذكير التلقائي (Scheduled Reminders) ---
+    
+    // التذكير الأول: بعد ساعة واحدة
+    setTimeout(() => {
+        ctx.reply("📖 **Quick Check-in:**\nYou've taken the first step to kill the inner critic. How does it feel to breathe in a cleaner internal OS? Remember, the tools to build your *External Reality* are waiting in Book 2.").catch(() => {});
+    }, 3600000); 
+
+    // التذكير الثاني: بعد 3 ساعات
+    setTimeout(() => {
+        ctx.reply("⚡️ **Identity is fixed. Now, Reality.**\nDon't let the momentum slide. The Blueprint for your new life (Relationships, Income, Discipline) is only one click away.\n\n[Grab Book 2 Now — $12.79]").catch(() => {});
+    }, 10800000);
 });
 
-// وظيفة منفصلة للمتابعة لضمان عدم تداخل الكود
-function setupFollowUp(ctx) {
-    setTimeout(() => {
-        ctx.reply("☕️ **How is the reading going?**\nEvery great story deserves a perfect atmosphere. Have you prepared your coffee yet?").catch(() => {});
-    }, 3600000);
+bot.action('send_free', async (ctx) => {
+    try {
+        await ctx.reply('Unlocking your internal freedom... 🎁');
+        await ctx.replyWithDocument({ source: 'book1.pdf' });
 
-    setTimeout(() => {
-        ctx.reply("🔍 **Did you know?**\nThe mystery deepens in **Book Two**. Check it out now!").catch(() => {});
-    }, 7200000);
-}
+        // الرسالة الفورية التي طلبتها
+        setTimeout(() => {
+            const promoMsg = `
+Congratulations.
+You’ve just killed the inner critic. You’ve decoded your behavior. For the first time, the "weight" is gone and your internal OS is clean.
 
-bot.action('send_free', (ctx) => {
-    ctx.reply('Preparing your free gift... 🎁');
-    ctx.replyWithDocument({ source: 'book1.pdf' }).catch((err) => {
-        console.log(err);
-        ctx.reply('Error: File unavailable. Contact @Mohamedlebah.');
-    });
+But here is the cold truth:
+A powerful engine is useless if the car has no wheels.
+
+**Book 1 gave you Internal Freedom (The Mind).**
+**Book 2 gives you External Dominance (The Life).**
+
+You’ve fixed your identity—now it’s time to fix your reality. Income, Relationships, and Discipline systems don't work if your mind is broken. But now that you are "Unbeatable" inside...
+
+It's time to become "Unbeatable" outside.
+
+The Blueprint for your new life is ready.
+
+[Grab Book 2: Build Your External Life — $12.79]
+
+Don't stop at feeling better. Start living better.
+            `;
+            ctx.reply(promoMsg, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "🚀 Grab Book 2 Now — $12.79", callback_data: "buy_premium" }]
+                    ]
+                }
+            });
+        }, 3000);
+
+    } catch (err) {
+        ctx.reply('Error: File unavailable. Contact @Mohamedlebah');
+    }
 });
 
 bot.action('buy_premium', (ctx) => {
@@ -72,8 +92,4 @@ bot.action('buy_premium', (ctx) => {
     ctx.reply(paymentMsg, { parse_mode: 'Markdown' });
 });
 
-bot.launch().then(() => console.log("Bot is running..."));
-
-// معالجة الأخطاء لعدم توقف البوت
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+bot.launch();
