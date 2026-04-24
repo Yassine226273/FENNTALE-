@@ -1,29 +1,34 @@
 const { Telegraf } = require('telegraf');
 const http = require('http');
 const axios = require('axios');
-const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// تأكد أن الكلمة الأولى هي const وليست Const (حساسة لحالة الأحرف)
+const bot = new Telegraf(process.env.BOT_TOKEN);
 const MY_ID = "7013389864";
 
-// إنشاء سيرفر بسيط لـ Render
+// 1. تحسين السيرفر ليرد على Cron-job بشكل أسرع
 const server = http.createServer((req, res) => {
     res.writeHead(200);
-    res.end("Fenntale Store is Online");
+    res.end("Fenntale Status: Active and Online");
+    console.log("Ping received: Keeping the bot awake!"); // ستظهر في الـ Logs لتتأكد
 });
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT);
 
-// نظام الإيقاظ الذاتي
+// 2. نظام الإيقاظ الذاتي (المحسن)
 setInterval(() => {
-    if (process.env.RENDER_EXTERNAL_HOSTNAME) {
-        const url = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}.onrender.com`;
-        axios.get(url).catch(() => {});
-    }
-}, 600000);
+    // نستخدم الرابط المباشر الخاص بك لضمان الدقة
+    const appUrl = `https://fenntal.onrender.com`; // استبدل 'fenntal' باسم مشروعك الحقيقي على Render إذا كان مختلفاً
+    axios.get(appUrl)
+        .then(() => console.log("Self-ping successful"))
+        .catch((err) => console.log("Self-ping failed, but server is still up"));
+}, 180000); // كل 3 دقائق بدلاً من 10 لضمان عدم النوم
 
 bot.start((ctx) => {
     const user = ctx.from;
     const alertMsg = `🔔 **New Visitor!**\n👤 Name: ${user.first_name}\n🆔 ID: ${user.id}\n🔗 @${user.username || 'None'}`;
+    
     bot.telegram.sendMessage(MY_ID, alertMsg).catch(() => {});
 
     const welcomeMsg = `🌟 **Welcome to Fenntale** 🌟\n"Your sanctuary of coffee, melodies, and great reads."\n\n👇 **Choose an option:**`;
@@ -37,29 +42,27 @@ bot.start((ctx) => {
                 [{ text: "📞 Contact Support", url: "https://t.me/Mohamedlebah" }]
             ]
         }
-    });
+    }).catch(e => console.log(e));
 
-    // --- نظام المتابعة الآلي (كل ساعة رسالة) ---
+    // نظام المتابعة (تم تحسينه ليعمل بشكل مستقل)
+    setupFollowUp(ctx);
+});
 
-    // رسالة بعد ساعة واحدة (3600000 ميلي ثانية)
+// وظيفة منفصلة للمتابعة لضمان عدم تداخل الكود
+function setupFollowUp(ctx) {
     setTimeout(() => {
         ctx.reply("☕️ **How is the reading going?**\nEvery great story deserves a perfect atmosphere. Have you prepared your coffee yet?").catch(() => {});
     }, 3600000);
 
-    // رسالة بعد ساعتين
     setTimeout(() => {
-        ctx.reply("🔍 **Did you know?**\nThe mystery deepens in **Book Two**. A secret is hidden in the first chapter that changes everything... Check it out now!").catch(() => {});
+        ctx.reply("🔍 **Did you know?**\nThe mystery deepens in **Book Two**. Check it out now!").catch(() => {});
     }, 7200000);
-
-    // رسالة بعد ثلاث ساعات
-    setTimeout(() => {
-        ctx.reply("🎁 **Special Offer!**\nGet the Premium Edition now and receive a personalized digital bookmark with your name. Contact @Mohamedlebah for details.").catch(() => {});
-    }, 10800000);
-});
+}
 
 bot.action('send_free', (ctx) => {
     ctx.reply('Preparing your free gift... 🎁');
-    ctx.replyWithDocument({ source: 'book1.pdf' }).catch(() => {
+    ctx.replyWithDocument({ source: 'book1.pdf' }).catch((err) => {
+        console.log(err);
         ctx.reply('Error: File unavailable. Contact @Mohamedlebah.');
     });
 });
@@ -69,4 +72,8 @@ bot.action('buy_premium', (ctx) => {
     ctx.reply(paymentMsg, { parse_mode: 'Markdown' });
 });
 
-bot.launch();
+bot.launch().then(() => console.log("Bot is running..."));
+
+// معالجة الأخطاء لعدم توقف البوت
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
