@@ -22,7 +22,15 @@ bot.start((ctx) => {
     const user = ctx.from;
     bot.telegram.sendMessage(MY_ID, `🔔 New Visitor: ${user.first_name}`).catch(() => {});
 
-    ctx.reply(`🌟 **Welcome to Fenntale** 🌟\n\n👇 **Please choose an option:**`, {
+    // --- جملتك المفضلة في الترحيب ---
+    const welcomeMsg = `🌟 **Welcome to Fenntale** 🌟
+"Fenntale: Your sanctuary of coffee, melodies, and great reads."
+
+Explore our collection of digital books designed to inspire your journey.
+
+👇 **Please choose an option:**`;
+
+    ctx.reply(welcomeMsg, {
         parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [
@@ -51,7 +59,7 @@ bot.action('send_free', async (ctx) => {
         await ctx.reply('Unlocking your internal freedom... 🎁');
         await ctx.replyWithDocument({ source: 'book1.pdf' });
 
-        // الرسالة الفورية التي طلبتها
+        // الرسالة القوية التي طلبتها
         setTimeout(() => {
             const promoMsg = `
 Congratulations.
