@@ -80,7 +80,7 @@ Choose your path below.
                     [
                         {
                             text: '📩 Contact Guide',
-                            url: https://t.me/Mohamedlebah
+                            url: 'https://t.me/Mohamedlebah'
                         }
                     ]
                 ]
