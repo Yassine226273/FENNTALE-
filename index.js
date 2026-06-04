@@ -80,7 +80,7 @@ Choose your path below.
                     [
                         { 
                             text: "📞 Contact Support", 
-                            url: "https://t.me/Mohamedlebah" 
+                            url: "tg://user?id=7013389864"
                         }
                     ] // تم وضع الصف الثاني هنا بشكل صحيح
                 ]
