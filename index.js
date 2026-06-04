@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+const { Telegraf } = require('telegraf'); // تم تصحيح Const إلى const
 const http = require('http');
 const axios = require('axios');
 
@@ -76,10 +76,13 @@ Choose your path below.
                             text: '📖 Unlock Blueprint One',
                             callback_data: 'send_free'
                         }
-        
-    [{ text: "📞 Contact Support", url: "https://t.me/Mohamedlebah" }]  
-    
-                    ]
+                    ], // تم إغلاق الصف الأول هنا بشكل صحيح
+                    [
+                        { 
+                            text: "📞 Contact Support", 
+                            url: "https://t.me/Mohamedlebah" 
+                        }
+                    ] // تم وضع الصف الثاني هنا بشكل صحيح
                 ]
             }
         });
@@ -127,7 +130,7 @@ Few people transform because of it.
 `);
 
         await ctx.replyWithDocument({
-            source: 'book1.pdf'
+            source: 'book1.pdf' // تأكد أن ملف الكود والملف book1.pdf في نفس المجلد
         });
 
     } catch (error) {
