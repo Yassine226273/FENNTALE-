@@ -77,6 +77,7 @@ Choose your path below.
                             callback_data: 'send_free'
                         }
         
+    [{ text: "📞 Contact Support", url: "https://t.me/Mohamedlebah" }]  
     
                     ]
                 ]
