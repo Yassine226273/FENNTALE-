@@ -76,12 +76,9 @@ Choose your path below.
                             text: '📖 Unlock Blueprint One',
                             callback_data: 'send_free'
                         }
-                    ],
-                    [
-                        {
-                            text: '📩 Contact Guide',
-                            url: 'https://t.me/Mohamedlebah'
-                        }
+             
+                    [{ text: "📞 Contact Support", url: "https://t.me/Mohamedlebah" }]  
+    
                     ]
                 ]
             }
